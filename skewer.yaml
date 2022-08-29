@@ -105,8 +105,8 @@ steps:
         - run: skupper gateway init --type docker
         - run: sleep 2 # XXX Ugh
           apply: test
-        - run: skupper gateway forward backend 8080
-        - run: cd frontend && python python/main.py --port 8081 --backend http://localhost:8080 &
+        - run: skupper gateway forward backend 8081
+        - run: cd frontend && python python/main.py --port 8080 --backend http://localhost:8081 &
         - run: sleep 86400
   # - standard: test_the_application
   # - standard: accessing_the_web_console
