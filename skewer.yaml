@@ -1,10 +1,9 @@
-title: Skupper Hello World Docker
-subtitle: A minimal HTTP application deployed across Kubernetes and Docker sites using Skupper
+title: Skupper local frontend
+subtitle: Connect to a remote service from a local process
 github_actions_url: https://github.com/ssorj/skupper-example-hello-world-docker/actions/workflows/main.yaml
 overview: |
   This example is a very simple multi-service HTTP application
-  deployed across a Kubernetes cluster and a bare-metal host or VM
-  running Docker containers.
+  deployed across a Kubernetes cluster and a bare-metal host or VM.
 
   It contains two services:
 
@@ -15,12 +14,12 @@ overview: |
   * A frontend service that sends greetings to the backend and
     fetches new greetings in response.
 
-  With Skupper, you can run the backend as a container on your local
-  machine and the frontend in Kubernetes and maintain connectivity
-  between the two services without exposing the backend to the public
-  internet.
+# With Skupper, you can run the backend as a container on your local
+# machine and the frontend in Kubernetes and maintain connectivity
+# between the two services without exposing the backend to the public
+# internet.
 
-  <!-- <img src="images/entities.svg" width="640"/> -->
+# <!-- <img src="images/entities.svg" width="640"/> -->
 prerequisites: |
   * A working installation of Docker ([installation
     guide][install-docker]) or Podman ([installation
@@ -92,6 +91,7 @@ steps:
           output: deployment.apps/backend created
         - await: deployment/backend
         - run: skupper expose deployment/backend --port 8080
+          output: XXX
   - title: Deploy and expose the frontend on your local machine
     preamble: |
       Use the `skupper gateway forward` command to make the backend
@@ -108,8 +108,21 @@ steps:
         - run: skupper gateway forward backend 8081
         - run: cd frontend && python python/main.py --port 8080 --backend http://localhost:8081 &
         - run: sleep 86400
-  # - standard: test_the_application
-  # - standard: accessing_the_web_console
+  - title: Test the application
+    preamble: |
+      Now we're ready to try it out.  Use `curl` or a similar tool to
+      request the frontend `/api/health` endpoint.
+    commands:
+      hello-world:
+        - run: curl http://localhost:8080/api/health
+          apply: readme
+          output: OK
+        - run: curl --fail --verbose --retry 60 --retry-connrefused --retry-delay 2 http://localhost:8080/api/health
+          apply: test
+    postamble: |
+      If everything is in order, you can now access the web interface by
+      navigating to `http://localhost:8080/` in your browser.
+  - standard: accessing_the_web_console
   - standard: cleaning_up
     # XXX Killing the frontend process
     commands:
