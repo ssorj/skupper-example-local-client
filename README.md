@@ -1,6 +1,6 @@
-# Skupper local frontend
+# Skupper local client
 
-[![main](https://github.com/ssorj/skupper-example-hello-world-docker/actions/workflows/main.yaml/badge.svg)](https://github.com/ssorj/skupper-example-hello-world-docker/actions/workflows/main.yaml)
+[![main](https://github.com/ssorj/skupper-example-local-client/actions/workflows/main.yaml/badge.svg)](https://github.com/ssorj/skupper-example-local-client/actions/workflows/main.yaml)
 
 #### Connect to a remote service from a local process
 
@@ -40,6 +40,12 @@ It contains two services:
 * A frontend service that sends greetings to the backend and
   fetches new greetings in response.
 
+In this example, the backend is running in a Kubernetes cluster and
+the frontend runs on your local machine.  Skupper enables the
+frontend to connect to the backend.
+
+<!-- <img src="images/entities.svg" width="640"/> -->
+
 ## Prerequisites
 
 * A working installation of Docker ([installation
@@ -55,14 +61,13 @@ It contains two services:
 [install-docker]: https://docs.docker.com/engine/install/
 [install-podman]: https://podman.io/getting-started/installation
 [install-kubectl]: https://kubernetes.io/docs/tasks/tools/install-kubectl/
-[kube-providers]: https://skupper.io/start/index.html#prerequisites
+[kube-providers]: https://skupper.io/start/kubernetes.html#providers
 
 ## Step 1: Install the Skupper command-line tool
 
 The `skupper` command-line tool is the primary entrypoint for
-installing and configuring the Skupper infrastructure.  You need
-to install the `skupper` command only once for each development
-environment.
+installing and configuring Skupper.  You need to install the
+`skupper` command only once for each development environment.
 
 On Linux or Mac, you can use the install script (inspect it
 [here][install-script]) to download and extract the command:
@@ -83,17 +88,11 @@ Skupper][install-docs].
 ## Step 2: Access your Kubernetes cluster
 
 The procedure for accessing a Kubernetes cluster varies by
-provider. Find the instructions for your chosen provider and use
-them to authenticate and configure access for each console
-session.  See the following links for more information:
+provider. [Find the instructions for your chosen
+provider][kube-providers] and use them to authenticate and
+configure access.
 
-* [Minikube](https://skupper.io/start/minikube.html)
-* [Amazon Elastic Kubernetes Service (EKS)](https://skupper.io/start/eks.html)
-* [Azure Kubernetes Service (AKS)](https://skupper.io/start/aks.html)
-* [Google Kubernetes Engine (GKE)](https://skupper.io/start/gke.html)
-* [IBM Kubernetes Service](https://skupper.io/start/ibmks.html)
-* [OpenShift](https://skupper.io/start/openshift.html)
-* [More providers](https://kubernetes.io/partners/#kcsp)
+[kube-providers]: https://skupper.io/start/kubernetes.html#providers
 
 ## Step 3: Set up your Kubernetes namespace
 
@@ -161,24 +160,43 @@ $ kubectl create deployment backend --image quay.io/skupper/hello-world-backend
 deployment.apps/backend created
 
 $ skupper expose deployment/backend --port 8080
-XXX
+deployment backend exposed as backend
 ~~~
 
 ## Step 6: Deploy and expose the frontend on your local machine
 
-Use the `skupper gateway forward` command to make the backend
-service available on a local port.
+Use the `skupper gateway init` command to set up a gateway
+router on your local machine.  Use the `--type docker` option to
+run the router in a Docker container.
 
-Run the frontend service on your local machine.  XXX Configure
-it to get the backend service at the localhost location.
+Use the `skupper gateway forward` command to make the backend
+service available on local port 8081.
+
+Run the frontend service on your local machine.  Configure
+it to connect to the backend service at local port 8081.
 
 _**Console for hello-world:**_
 
 ~~~ shell
 skupper gateway init --type docker
 skupper gateway forward backend 8081
-cd frontend && python python/main.py --port 8080 --backend http://localhost:8081 &
-sleep 86400
+(cd frontend && python python/main.py --host localhost --port 8080 --backend http://localhost:8081) &
+~~~
+
+_Sample output:_
+
+~~~ console
+$ skupper gateway init --type docker
+Skupper gateway: 'fancypants-jross'. Use 'skupper gateway status' to get more information.
+
+$ skupper gateway forward backend 8081
+2022/08/29 16:59:05 CREATE io.skupper.router.tcpListener fancypants-jross-ingress-backend:8080 map[address:backend:8080 name:fancypants-jross-ingress-backend:8080 port:8081 siteId:28b1dbd3-c4cd-4e49-a955-83328155ab53]
+
+$ (cd frontend && python python/main.py --host localhost --port 8080 --backend http://localhost:8081) &
+INFO:     Started server process [1710891]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8080 (Press CTRL+C to quit)
 ~~~
 
 ## Step 7: Test the application
@@ -244,6 +262,7 @@ the following commands.
 _**Console for hello-world:**_
 
 ~~~ shell
+kill $(ps -ef | grep 'python python/main\.py' | awk '{print $2}') 2> /dev/null
 skupper gateway delete
 skupper delete
 kubectl delete service/backend
