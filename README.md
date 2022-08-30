@@ -28,8 +28,8 @@ across cloud providers, data centers, and edge sites.
 
 ## Overview
 
-This example is a very simple multi-service HTTP application
-deployed across a Kubernetes cluster and a bare-metal host or VM.
+This example is a multi-service HTTP application deployed across a
+Kubernetes cluster and a bare-metal host or VM.
 
 It contains two services:
 
@@ -40,9 +40,9 @@ It contains two services:
 * A frontend service that sends greetings to the backend and
   fetches new greetings in response.
 
-In this example, the backend is running in a Kubernetes cluster and
-the frontend runs on your local machine.  Skupper enables the
-frontend to connect to the backend.
+The backend runs on Kubernetes and the frontend runs on your local
+machine.  Skupper enables the frontend to connect to the backend
+using a dedicated service network.
 
 <!-- <img src="images/entities.svg" width="640"/> -->
 
