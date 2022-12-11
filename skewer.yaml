@@ -30,6 +30,8 @@ prerequisites: |
   * Access to a Kubernetes cluster, from [any provider you
     choose][kube-providers]
 
+  * XXX `pip install httpx starlette sse_starlette uvicorn`
+
   [install-docker]: https://docs.docker.com/engine/install/
   [install-podman]: https://podman.io/getting-started/installation
   [install-kubectl]: https://kubernetes.io/docs/tasks/tools/install-kubectl/
